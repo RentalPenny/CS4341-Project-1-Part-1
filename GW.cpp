@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
-#include <string_view>
 
 // TODO: Add alpha-beta pruning
 
@@ -25,12 +24,11 @@ public:
 
     Board() {
 
-        vector<vector<char>> config;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                config[i][j] = '-';
-            }
-        }
+        vector<vector<char>> config = {
+            {'-', '-', '-'},
+            {'-', '-', '-'},
+            {'-', '-', '-'}
+        };
 
         vector<Board> kids = {};
         string move = "";
@@ -77,7 +75,7 @@ public:
      *
      * @return The equivalent utility value of this board (either its value if terminal, or the value sent up to it if not)
      */
-    int checkBoard(bool max) {
+    int checkBoard(bool max, int alpha, int beta) {
 
         int currValue; //-1: lose, 0: tie, 1: win, -2: not terminal
         currValue = this->checkWin();
@@ -90,8 +88,10 @@ public:
 
                 for (int i = 0; i < sizeof(nextMoves); i++) {
                     Board nextBoard = nextMoves[i];              // board configuration of the kid we're looking at
-                    int nextValue = nextBoard.checkBoard(false); // It's 10PM
+                    int nextValue = nextBoard.checkBoard(false, alpha, beta); // It's 10PM
                     if (nextValue > currMax) currMax = nextValue; // store max, when done will be overall max
+                    if(currMax >= alpha) alpha  = currMax;
+                    if(beta <= alpha) break;
                 }
                 currValue = currMax;
             }
@@ -101,8 +101,10 @@ public:
 
                 for (int i = 0; i < sizeof(nextMoves); i++) {
                     Board nextBoard = nextMoves[i];             // board configuration of the kid we're looking at
-                    int nextValue = nextBoard.checkBoard(true); // It's 10PM
+                    int nextValue = nextBoard.checkBoard(true, alpha, beta); // It's 10PM
                     if (nextValue < currMin) currMin = nextValue; // store min, when done will be overall min
+                    if(currMin <= beta) beta = currMin;
+                    if(beta <= alpha) break;
                 }
                 currValue = currMin;
             }
@@ -260,7 +262,7 @@ enum WinState{ Win, Lose, Tie, NotYet };
  *
  * @return Void
  */
-void main() {
+int main() {
 
     string incomingMessage = ""; // Initialize to empty string, so only contains something when received move
     int currBest = -2;           // Value of the best next move so far
@@ -277,6 +279,8 @@ void main() {
 
         switch (currState) {
         case Start:
+
+            //cout << "Give Token";
 
             cin >> incomingMessage;
 
@@ -300,7 +304,7 @@ void main() {
             for (int i = 0; i < sizeof(nextMoves); i++) {                                        // Looks at each child node
                 Board nextBoard = currBoard.kids[i]; // Gets the current child
                 string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
-                int nextVal = nextBoard.checkBoard(true);
+                int nextVal = nextBoard.checkBoard(true, -99999, 99999);
                 if (nextVal > currBest) {
                     currBest = nextVal;
                     bestNextMove = nextMove;
@@ -319,6 +323,7 @@ void main() {
 
         case ReceiveMove:
 
+            //cout << "Give Move";
             cin >> incomingMessage; // Accepts move from referee
 
             if (incomingMessage.find("END")) ongoing = false;
