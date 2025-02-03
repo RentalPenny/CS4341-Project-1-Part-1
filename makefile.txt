@@ -1,0 +1,8 @@
+
+all: GW
+
+GW: MikeCPlayer.cpp
+    g++ -o GW MikeCPlayer.cpp
+
+clean:
+    rm -f GW
