@@ -1,5 +1,6 @@
 #include <iostream>
-#include <string>
+#include <vector>
+#include <string.h>
 
 //TODO: Add alpha-beta pruning
 
@@ -11,22 +12,22 @@ Token myToken = X;
 class Board {
 
     public:
-    char** config; //2d matrix of what each slot contains
-    Board* kids; //array of possible Boards to go from this Board
+    vector<vector<char>> config; //2d matrix of what each slot contains
+    vector<Board> kids; //array of possible Boards to go from this Board
     string move; //the move that got the game to this board
 
     //Constructors
 
     Board() {
 
-        char** config;
+        vector<vector<char>> config;
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
-                config[i, j] = "";
+                config[i][j] = '-';
             }
         }
 
-        Board* kids = {};
+        vector<Board> kids = {};
         string move = "";
 
     };
@@ -44,18 +45,18 @@ class Board {
         else if(conVert[0] == 'b') col = 1;
         else if(conVert[0] == 'c') col = 2;
 
-        char* config;
+        vector<vector<char>> config;
 
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
-                if((i == row) & (j == col)) config[i, j] = myToken;
-                else config[i, j] = '-';
+                if((i == row) & (j == col)) config[i][j] = myToken;
+                else config[i][j] = '-';
             }
         }
 
     };
 
-    Board(char** config, Board* kids, string move) {
+    Board(vector<vector<char>> config, vector<Board> kids, string move) {
 
         config = config;
         kids = kids;
@@ -83,7 +84,7 @@ class Board {
 
             if(max) { //If 
                 int currMax = 2;
-                Board* nextMoves = this->nextMoves(true);
+                vector<Board> nextMoves = this->nextMoves(true);
 
                 for(int i = 0; i < sizeof(nextMoves); i++){
                     Board nextBoard = nextMoves[i]; //board configuration of the kid we're looking at
@@ -94,7 +95,7 @@ class Board {
 
             }else {
                 int currMin = -2;
-                Board* nextMoves = this->nextMoves(false);
+                vector<Board> nextMoves = this->nextMoves(false);
 
                 for(int i = 0; i < sizeof(nextMoves); i++){
                     Board nextBoard = nextMoves[i]; //board configuration of the kid we're looking at
@@ -152,10 +153,10 @@ class Board {
     * 
     * @return A list of boards that could be made with a move from the current board configuration
     */
-    Board* nextMoves(bool me) {
+    vector<Board> nextMoves(bool me) {
 
-        Board* nextMoves;
-        char** currConfig = this->config;
+        vector<Board> nextMoves;
+        vector<vector<char>> currConfig = this->config;
 
         for(int i = 0; i < 3; i++) {
             for(int j = 0; j < 3; j++) {
@@ -165,7 +166,7 @@ class Board {
                 string fullMove;
                 static int size = 0;
 
-                if((char)currConfig[i, j] == '-') {
+                if(currConfig[i][j] == '-') {
                     
                     //Convert row colum to move
                     if(i == 0) moveRow = "3";
@@ -200,29 +201,29 @@ class Board {
     int checkWin() {
 
         int utilValue = -2; //default not terminal, will change to -1, 0, or 1 if it is terminal
-        char** config = this->config;
+        vector<vector<char>> config = this->config;
 
         if( 
-            ( ((char)config[0,0] == 'x') && ((char)config[0,1] == 'x') && ((char)config[0,2] == 'x') ) ||
-            ( ((char)config[1,0] == 'x') && ((char)config[1,1] == 'x') && ((char)config[1,2] == 'x') ) ||
-            ( ((char)config[2,0] == 'x') && ((char)config[2,1] == 'x') && ((char)config[2,2] == 'x') ) ||
-            ( ((char)config[0,0] == 'x') && ((char)config[1,0] == 'x') && ((char)config[2,0] == 'x') ) ||
-            ( ((char)config[0,1] == 'x') && ((char)config[1,1] == 'x') && ((char)config[2,1] == 'x') ) ||
-            ( ((char)config[0,2] == 'x') && ((char)config[1,2] == 'x') && ((char)config[2,2] == 'x') ) ||
-            ( ((char)config[0,0] == 'x') && ((char)config[1,1] == 'x') && ((char)config[2,2] == 'x') ) ||
-            ( ((char)config[0,2] == 'x') && ((char)config[1,1] == 'x') && ((char)config[2,0] == 'x') )
+            ( (config[0][0] == 'x') && (config[0][1] == 'x') && (config[0][2] == 'x') ) ||
+            ( (config[1][0] == 'x') && (config[1][1] == 'x') && (config[1][2] == 'x') ) ||
+            ( (config[2][0] == 'x') && (config[2][1] == 'x') && (config[2][2] == 'x') ) ||
+            ( (config[0][0] == 'x') && (config[1][0] == 'x') && (config[2][0] == 'x') ) ||
+            ( (config[0][1] == 'x') && (config[1][1] == 'x') && (config[2][1] == 'x') ) ||
+            ( (config[0][2] == 'x') && (config[1][2] == 'x') && (config[2][2] == 'x') ) ||
+            ( (config[0][0] == 'x') && (config[1][1] == 'x') && (config[2][2] == 'x') ) ||
+            ( (config[0][2] == 'x') && (config[1][1] == 'x') && (config[2][0] == 'x') )
         ) {
             if(myToken == X) utilValue = 1;
             else utilValue = -1;
         } else if( 
-            ( ((char)config[0,0] == 'o') && ((char)config[0,1] == 'o') && ((char)config[0,2] == 'o') ) ||
-            ( ((char)config[1,0] == 'o') && ((char)config[1,1] == 'o') && ((char)config[1,2] == 'o') ) ||
-            ( ((char)config[2,0] == 'o') && ((char)config[2,1] == 'o') && ((char)config[2,2] == 'o') ) ||
-            ( ((char)config[0,0] == 'o') && ((char)config[1,0] == 'o') && ((char)config[2,0] == 'o') ) ||
-            ( ((char)config[0,1] == 'o') && ((char)config[1,1] == 'o') && ((char)config[2,1] == 'o') ) ||
-            ( ((char)config[0,2] == 'o') && ((char)config[1,2] == 'o') && ((char)config[2,2] == 'o') ) ||
-            ( ((char)config[0,0] == 'o') && ((char)config[1,1] == 'o') && ((char)config[2,2] == 'o') ) ||
-            ( ((char)config[0,2] == 'o') && ((char)config[1,1] == 'o') && ((char)config[2,0] == 'o') )
+            ( (config[0][0] == 'o') && (config[0][1] == 'o') && (config[0][2] == 'o') ) ||
+            ( (config[1][0] == 'o') && (config[1][1] == 'o') && (config[1][2] == 'o') ) ||
+            ( (config[2][0] == 'o') && (config[2][1] == 'o') && (config[2][2] == 'o') ) ||
+            ( (config[0][0] == 'o') && (config[1][0] == 'o') && (config[2][0] == 'o') ) ||
+            ( (config[0][1] == 'o') && (config[1][1] == 'o') && (config[2][1] == 'o') ) ||
+            ( (config[0][2] == 'o') && (config[1][2] == 'o') && (config[2][2] == 'o') ) ||
+            ( (config[0][0] == 'o') && (config[1][1] == 'o') && (config[2][2] == 'o') ) ||
+            ( (config[0][2] == 'o') && (config[1][1] == 'o') && (config[2][0] == 'o') )
         ) {
             if(myToken == O) utilValue = 1;
             else utilValue = -1;
@@ -230,7 +231,7 @@ class Board {
             utilValue = 0;
             for(int i = 0; i < 3; i++) {
                 for(int j = 0; j < 3; j++) {
-                    if((char)config[i, j] == '-') utilValue = -2;
+                    if((char)config[i][j] == '-') utilValue = -2;
                 }
             }
         }
@@ -254,6 +255,9 @@ void sendMove(string move) {
 
 }
 
+
+enum GameState{Start, TakeTurn, ReceiveMove, Endgame};
+enum WinState{Win, Lose, Tie, NotYet};
 /**
 * @brief  Primary loop of the game. Waits for incoming move, makes the move, then calls functions to determine best next move, and sends to referee
 * 
@@ -266,11 +270,11 @@ void loop() {
     static string bestNextMove = ""; //String representation of the best move so far
     static Board currBoard = Board(); //On first pass makes blank board config
 
-    static enum WinState{Win, Lose, Tie, NotYet};
     static WinState winState = NotYet;
 
-    static enum GameState{Start, TakeTurn, ReceiveMove, Endgame};
     static GameState currState = Start;
+
+    vector<Board> nextMoves;
 
     switch(currState) {
         case Start:
@@ -291,7 +295,7 @@ void loop() {
 
         case TakeTurn:
         
-            Board* nextMoves = currBoard.nextMoves(true); //Populates the child nodes of current Board and saves them to array of Boards
+            nextMoves = currBoard.nextMoves(true); //Populates the child nodes of current Board and saves them to array of Boards
 
             for(int i = 0; i < sizeof(nextMoves); i++){ //Looks at each child node
                 Board nextBoard = currBoard.kids[i]; //Gets the current child
