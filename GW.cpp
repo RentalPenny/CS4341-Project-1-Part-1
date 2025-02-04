@@ -2,8 +2,6 @@
 #include <vector>
 #include <string.h>
 
-// TODO: Add alpha-beta pruning
-
 using namespace std;
 
 enum Token
@@ -81,14 +79,16 @@ public:
         int currValue; //-1: lose, 0: tie, 1: win, -2: not terminal
         currValue = this->checkWin();
 
-        if (currValue = -2) { // If terminal, doesnt check kids. If not, it's 10PM
+        if (currValue == -2) { // If terminal, doesnt check kids. If not, it's 10PM
 
             if (max) {
-                int currMax = 2;
+                int currMax = -2;
                 vector<Board> nextMoves = this->nextMoves(true);
 
-                for (int i = 0; i < sizeof(nextMoves); i++) {
-                    Board nextBoard = nextMoves[i];              // board configuration of the kid we're looking at
+                for (int i = 0; i < sizeof(nextMoves)-1; i++) {
+                    Board nextBoard = nextMoves[i]; // board configuration of the kid we're looking at
+                    printBoard(nextBoard.config);
+                    //cout << "Next Board Size: " << nextBoard.config.size() << endl;
                     int nextValue = nextBoard.checkBoard(false, alpha, beta); // It's 10PM
                     if (nextValue > currMax) currMax = nextValue; // store max, when done will be overall max
                     if(currMax >= alpha) alpha  = currMax;
@@ -97,11 +97,13 @@ public:
                 currValue = currMax;
             }
             else {
-                int currMin = -2;
+                int currMin = 2;
                 vector<Board> nextMoves = this->nextMoves(false);
 
-                for (int i = 0; i < sizeof(nextMoves); i++) {
-                    Board nextBoard = nextMoves[i];             // board configuration of the kid we're looking at
+                for (int i = 0; i < sizeof(nextMoves)-1; i++) {
+                    Board nextBoard = nextMoves[i]; // board configuration of the kid we're looking at
+                    nextBoard.printBoard(nextBoard.config);
+                    //cout << "Next Board Size: " << nextBoard.config.size() << endl;
                     int nextValue = nextBoard.checkBoard(true, alpha, beta); // It's 10PM
                     if (nextValue < currMin) currMin = nextValue; // store min, when done will be overall min
                     if(currMin <= beta) beta = currMin;
@@ -191,6 +193,7 @@ public:
             }
         }
 
+        cout << "# Next Moves: " << nextMoves.size() << endl;
         this->kids = nextMoves;
         return nextMoves;
     }
@@ -203,8 +206,6 @@ public:
      * @return void
      */
     void printBoard(vector<vector<char>> config) {
-
-        cout << config.size() << endl;
 
         cout << "  a b c" << endl;
         cout << "3 " << config[0][0] << " " << config[0][1] << " " << config[0][2] << endl;
@@ -287,6 +288,9 @@ int main() {
     Board currBoard = Board();   // On first pass makes blank board config
     vector<Board> nextMoves;
 
+    static int alpha = -9999;
+    static int beta = 9999;
+
     WinState winState = NotYet;
     GameState currState = Start;
 
@@ -298,10 +302,10 @@ int main() {
         case Start:
 
             //cin >> incomingMessage;
-            incomingMessage = "O"; // For testing purposes, will be replaced with cin >> incomingMessage;
+            incomingMessage = "blue"; // For testing purposes, will be replaced with cin >> incomingMessage;
 
             if (incomingMessage != "") {
-                if (incomingMessage == "X") {
+                if (incomingMessage == "blue") {
                     myToken = X;
                     currState = TakeTurn;
                 }
@@ -316,11 +320,11 @@ int main() {
         case TakeTurn:
 
             nextMoves = currBoard.nextMoves(true); // Populates the child nodes of current Board and saves them to array of Boards
-            cout << "Next Moves: " << nextMoves.size() << endl;
             for (int i = 0; i < sizeof(nextMoves); i++) {                                        // Looks at each child node
                 Board nextBoard = currBoard.kids[i]; // Gets the current child
                 string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
-                int nextVal = nextBoard.checkBoard(true, -99999, 99999);
+                //nextBoard.printBoard(nextBoard.config);
+                int nextVal = nextBoard.checkBoard(false, alpha, beta); // Gets the utility value of the current child
                 if (nextVal > currBest) {
                     currBest = nextVal;
                     bestNextMove = nextMove;
@@ -339,10 +343,11 @@ int main() {
 
         case ReceiveMove:
 
-            //cout << "Give Move";
-            //cin >> incomingMessage; // Accepts move from referee
+            cin >> incomingMessage; // Accepts move from referee
+            
             incomingMessage = "a2"; // For testing purposes, will be replaced with cin >> incomingMessage;
             cout << "Received Move: " << incomingMessage << endl;
+            
             if (incomingMessage.find("END") != std::string::npos) ongoing = false;
             else if (incomingMessage != "") {
 
