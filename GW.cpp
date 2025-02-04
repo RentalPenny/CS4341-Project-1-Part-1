@@ -24,11 +24,12 @@ public:
 
     Board() {
 
-        vector<vector<char>> config = {
+        config = {
             {'-', '-', '-'},
             {'-', '-', '-'},
             {'-', '-', '-'}
         };
+
 
         vector<Board> kids = {};
         string move = "";
@@ -169,7 +170,7 @@ public:
                 string moveRow;
                 string moveCol;
                 string fullMove;
-                static int size = 0;
+
 
                 if (currConfig[i][j] == '-') {
 
@@ -185,14 +186,30 @@ public:
                     fullMove = moveCol.append(moveRow);
 
                     Board nextBoard = this->makeMove(fullMove, me);
-                    nextMoves[size] = nextBoard;
-                    size++;
+                    nextMoves.push_back(nextBoard);
                 }
             }
         }
 
         this->kids = nextMoves;
         return nextMoves;
+    }
+
+    /**
+     * @brief  Prints the current board configuration
+     *
+     * @param  config:  The current board configuration
+     *
+     * @return void
+     */
+    void printBoard(vector<vector<char>> config) {
+
+        cout << config.size() << endl;
+
+        cout << "  a b c" << endl;
+        cout << "3 " << config[0][0] << " " << config[0][1] << " " << config[0][2] << endl;
+        cout << "2 " << config[1][0] << " " << config[1][1] << " " << config[1][2] << endl;
+        cout << "1 " << config[2][0] << " " << config[2][1] << " " << config[2][2] << endl;
     }
 
     /**
@@ -280,9 +297,8 @@ int main() {
         switch (currState) {
         case Start:
 
-            //cout << "Give Token";
-
-            cin >> incomingMessage;
+            //cin >> incomingMessage;
+            incomingMessage = "O"; // For testing purposes, will be replaced with cin >> incomingMessage;
 
             if (incomingMessage != "") {
                 if (incomingMessage == "X") {
@@ -300,7 +316,7 @@ int main() {
         case TakeTurn:
 
             nextMoves = currBoard.nextMoves(true); // Populates the child nodes of current Board and saves them to array of Boards
-
+            cout << "Next Moves: " << nextMoves.size() << endl;
             for (int i = 0; i < sizeof(nextMoves); i++) {                                        // Looks at each child node
                 Board nextBoard = currBoard.kids[i]; // Gets the current child
                 string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
@@ -324,12 +340,15 @@ int main() {
         case ReceiveMove:
 
             //cout << "Give Move";
-            cin >> incomingMessage; // Accepts move from referee
-
-            if (incomingMessage.find("END")) ongoing = false;
+            //cin >> incomingMessage; // Accepts move from referee
+            incomingMessage = "a2"; // For testing purposes, will be replaced with cin >> incomingMessage;
+            cout << "Received Move: " << incomingMessage << endl;
+            if (incomingMessage.find("END") != std::string::npos) ongoing = false;
             else if (incomingMessage != "") {
 
                 currBoard = currBoard.makeMove(incomingMessage, false); // Applies move to the current board configuration
+
+                currBoard.printBoard(currBoard.config);
 
                 incomingMessage = "";
 
