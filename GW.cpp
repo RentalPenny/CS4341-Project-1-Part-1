@@ -13,6 +13,7 @@ public:
     vector<vector<char>> config; // 2d matrix of what each slot contains
     vector<Board> kids;          // array of possible Boards to go from this Board
     string move;                 // the move that got the game to this board
+    int numWinsFromKids;         // number of wins from down all branches of this board
 
     // Constructors
 
@@ -27,6 +28,7 @@ public:
 
         vector<Board> kids = {};
         string move = "";
+        int numWinsFromKids = 0;
     };
 
     Board(string move) {
@@ -51,6 +53,11 @@ public:
                 else config[i][j] = '-';
             }
         }
+
+        config = config;
+        vector<Board> kids = {};
+        move = move;
+        int numWinsFromKids = 0;
     };
 
     Board(vector<vector<char>> config, vector<Board> kids, string move) {
@@ -75,33 +82,59 @@ public:
         int currValue; //-1: lose, 0: tie, 1: win, -2: not terminal
         currValue = this->checkWin();
 
+        if(currValue == 1) this->numWinsFromKids++;
+        else if(currValue == -1) this->numWinsFromKids--;
+
         if (currValue == -2) { // If terminal, doesnt check kids. If not, it's 10PM
 
             if (max) {
                 int currMax = -2;
+                int currMaxNumWins = 0;
                 vector<Board> nextMoves = this->nextMoves(true);
 
                 for (Board nextBoard : nextMoves) { // board configuration of the kid we're looking at
+                    //cout << "Next Move: " << nextBoard.move << endl;
                     //printBoard(nextBoard.config);
                     //cout << "Next Board Size: " << nextBoard.config.size() << endl;
                     int nextValue = nextBoard.checkBoard(false, alpha, beta); // It's 10PM
-                    if (nextValue > currMax) currMax = nextValue; // store max, when done will be overall max
-                    if(currMax >= alpha) alpha  = currMax;
-                    if(beta <= alpha) break;
+                    if(nextValue > currMax) {
+                        currMax = nextValue; // store max, when done will be overall max
+                        currMaxNumWins = nextBoard.numWinsFromKids;
+                    }
+                    else if (nextValue = currMax) {
+                        if(nextBoard.numWinsFromKids > currMaxNumWins) {
+                            currMax = nextValue; // store max, when done will be overall max
+                            currMaxNumWins = nextBoard.numWinsFromKids;
+                        }
+                    }
+                    if(currMax > alpha) alpha  = currMax;
+                    if(beta < alpha) break;
                 }
                 currValue = currMax;
             }
             else {
                 int currMin = 2;
+                int currMinNumWins = 0;
                 vector<Board> nextMoves = this->nextMoves(false);
 
                 for (Board nextBoard : nextMoves) { // board configuration of the kid we're looking at
-                    //nextBoard.printBoard(nextBoard.config);
+                    //cout << "Next Move: " << nextBoard.move << endl;
+                    //printBoard(nextBoard.config);
                     //cout << "Next Board Size: " << nextBoard.config.size() << endl;
                     int nextValue = nextBoard.checkBoard(true, alpha, beta); // It's 10PM
-                    if (nextValue < currMin) currMin = nextValue; // store min, when done will be overall min
-                    if(currMin <= beta) beta = currMin;
-                    if(beta <= alpha) break;
+                    if(nextValue < currMin) {
+                        currMin = nextValue;
+                        currMinNumWins = nextBoard.numWinsFromKids;
+                    }
+                    else
+                    if (nextValue = currMin) {
+                        if(nextBoard.numWinsFromKids < currMinNumWins) {
+                            currMin = nextValue;
+                            currMinNumWins = nextBoard.numWinsFromKids;
+                        }
+                    }
+                    if(currMin < beta) beta = currMin;
+                    if(beta < alpha) break;
                 }
                 currValue = currMin;
             }
@@ -296,7 +329,7 @@ int main() {
         case Start:
 
             cin >> incomingMessage;
-            //incomingMessage = "X"; // For testing purposes, will be replaced with cin >> incomingMessage;
+            //incomingMessage = "blue"; // For testing purposes, will be replaced with cin >> incomingMessage;
 
             if (incomingMessage != "") {
                 if (incomingMessage == "blue") {
@@ -316,6 +349,7 @@ int main() {
             nextMoves = currBoard.nextMoves(true); // Populates the child nodes of current Board and saves them to array of Boards
             for (Board nextBoard : nextMoves) {// Looks at each child node
                 string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
+                //cout << "Next Move: " << nextMove << endl;
                 //nextBoard.printBoard(nextBoard.config);
                 int nextVal = nextBoard.checkBoard(false, alpha, beta); // Gets the utility value of the current child
                 if (nextVal > currBest) {
@@ -325,6 +359,7 @@ int main() {
             }
 
             currBoard = currBoard.makeMove(bestNextMove, true); // Updates the current board state to the move we are about to make
+            //cout << "Best Move: " << bestNextMove << endl;
             //currBoard.printBoard(currBoard.config);
             sendMove(bestNextMove);
 
@@ -339,13 +374,13 @@ int main() {
         case ReceiveMove:
 
             cin >> incomingMessage; // Accepts move from referee
-            //cout << "Received Move: " << incomingMessage << endl;
             
             if (incomingMessage.find("END") != std::string::npos) ongoing = false;
             else if (incomingMessage != "") {
 
                 currBoard = currBoard.makeMove(incomingMessage, false); // Applies move to the current board configuration
 
+                //cout << "Opponent Move: " << incomingMessage << endl;
                 //currBoard.printBoard(currBoard.config);
 
                 incomingMessage = "";
