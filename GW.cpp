@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string.h>
+#include <ctime>
 
 using namespace std;
 
@@ -87,35 +88,42 @@ public:
                 vector<Board> nextMoves = this->nextMoves(true); //Creates and populates a list of all the possible moves that can be made from this board
 
                 for (Board nextBoard : nextMoves) { // board configuration of the kid we're looking at
+
                     //cout << "Next Move: " << nextBoard.move << endl; //FOR TESTING
                     //printBoard(nextBoard.config); //FOR TESTING
                     //cout << "Next Board Size: " << nextBoard.config.size() << endl; //FOR TESTING
+
                     int nextValue = nextBoard.checkBoard(false, alpha, beta); // It's 10PM
-                    if(nextValue > currMax) { //If value of next board greater than currMax, doesnt need to tie break
+
+                    if(nextValue > currMax) { //If value of next board greater than currMax, doesnt need to tie break     
                         currMax = nextValue; // store max, when done will be overall max
-                        currMaxNumWins = nextBoard.numWinsFromKids; //Stores the number of wins from the kids of the current board
-                    }
-                    else if (nextValue = currMax) { //If a tie
+                        currMaxNumWins = nextBoard.numWinsFromKids; //Stores the number of wins from the kids of the current board                   
+                    } else if (nextValue = currMax) { //If a tie    
                         if(nextBoard.numWinsFromKids > currMaxNumWins) { //Breaks the tie based on which has more wins down its branches
                             currMax = nextValue; // store max, when done will be overall max
                             currMaxNumWins = nextBoard.numWinsFromKids; //Stores the number of wins from the kids of the current board
                         }
                     }
+
                     if(currMax > alpha) alpha  = currMax; //If the current max is greater than alpha, sets alpha to the current max
                     if(beta < alpha) break; //If beta is less than alpha, doesnt need to check the rest of this branch
                 }
                 currValue = currMax; //Updates the utility value of this board to the max of its children
             }
             else {
+
                 int currMin = 2;
                 int currMinNumWins = 0;
                 vector<Board> nextMoves = this->nextMoves(false); //Creates and populates a list of all the possible moves that can be made from this board
 
                 for (Board nextBoard : nextMoves) { // board configuration of the kid we're looking at
+
                     //cout << "Next Move: " << nextBoard.move << endl; //FOR TESTING
                     //printBoard(nextBoard.config); //FOR TESTING
                     //cout << "Next Board Size: " << nextBoard.config.size() << endl; //FOR TESTING
+
                     int nextValue = nextBoard.checkBoard(true, alpha, beta); // It's 10PM
+                    
                     if(nextValue < currMin) { //If value of next board less than currMin, doesnt need to tie break
                         currMin = nextValue; // store min, when done will be overall min
                         currMinNumWins = nextBoard.numWinsFromKids; //Stores the number of wins from the kids of the current board
@@ -126,6 +134,7 @@ public:
                             currMinNumWins = nextBoard.numWinsFromKids; //Stores the number of wins from the kids of the current board
                         }
                     }
+                    
                     if(currMin < beta) beta = currMin; //If the current min is less than beta, sets beta to the current min
                     if(beta < alpha) break; //If beta is less than alpha, doesnt need to check the rest of this branch
                 }
@@ -300,6 +309,8 @@ enum WinState{ Win, Lose, Tie, NotYet }; // Enum to keep track of the current wi
  *
  * @return Void
  */
+WinState winState = NotYet; // Initialize to not yet won, will change if win, lose, or tie
+GameState currState = Start; // Initialize to start state
 int main() {
 
     string incomingMessage = ""; // Initialize to empty string, so only contains something when received move
@@ -309,99 +320,95 @@ int main() {
     vector<Board> nextMoves;
 
     // Alpha Beta Pruning. Initialize alpha to negative large number and beta to positive large number
-    static int alpha = -9999; 
-    static int beta = 9999;
-
-    WinState winState = NotYet; // Initialize to not yet won, will change if win, lose, or tie
-    GameState currState = Start; // Initialize to start state
+    int alpha = -9999; 
+    int beta = 9999;
 
     bool ongoing = true; // Boolean to keep track of if the game is still ongoing
 
     while (ongoing) {
 
         switch (currState) {
-        case Start:
+            case Start:
 
-            cin >> incomingMessage; // Accepts the color of the player
-            //incomingMessage = "blue"; //FOR TESTING
+                //cin >> incomingMessage; // Accepts the color of the player
+                incomingMessage = "blue"; //FOR TESTING
 
-            if (incomingMessage != "") { // If the color of the player is received
-                if (incomingMessage == "blue") { //If GW is blue, assigns token to X and goes to TakeTurn state
-                    myToken = X;
-                    currState = TakeTurn;
+                if (incomingMessage != "") { // If the color of the player is received
+                    if (incomingMessage == "blue") { //If GW is blue, assigns token to X and goes to TakeTurn state
+                        myToken = X;
+                        currState = TakeTurn;
+                    }
+                    else { //If GW is orange, assigns token to O and goes to ReceiveMove state
+                        myToken = O;
+                        currState = ReceiveMove;
+                    }
                 }
-                else { //If GW is orange, assigns token to O and goes to ReceiveMove state
-                    myToken = O;
-                    currState = ReceiveMove;
+
+            break;
+
+            case TakeTurn:
+
+                nextMoves = currBoard.nextMoves(true); // Populates the child nodes of current Board and saves them to array of Boards
+                for (Board nextBoard : nextMoves) {// Looks at each child node
+                    string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
+                    //cout << "Next Move: " << nextMove << endl; //FOR TESTING
+                    //nextBoard.printBoard(nextBoard.config); //FOR TESTING
+                    int nextVal = nextBoard.checkBoard(false, alpha, beta); // Gets the utility value of the current child
+                    if (nextVal > currBest) {
+                        currBest = nextVal;
+                        bestNextMove = nextMove;
+                    }
                 }
-            }
 
-        break;
-
-        case TakeTurn:
-
-            nextMoves = currBoard.nextMoves(true); // Populates the child nodes of current Board and saves them to array of Boards
-            for (Board nextBoard : nextMoves) {// Looks at each child node
-                string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
-                //cout << "Next Move: " << nextMove << endl; //FOR TESTING
-                //nextBoard.printBoard(nextBoard.config); //FOR TESTING
-                int nextVal = nextBoard.checkBoard(false, alpha, beta); // Gets the utility value of the current child
-                if (nextVal > currBest) {
-                    currBest = nextVal;
-                    bestNextMove = nextMove;
-                }
-            }
-
-            currBoard = currBoard.makeMove(bestNextMove, true); // Updates the current board state to the move we are about to make
-            //cout << "Best Move: " << bestNextMove << endl; //FOR TESTING
-            //currBoard.printBoard(currBoard.config); //FOR TESTING
-            sendMove(bestNextMove);
-
-            //Resets the best values for next move
-            currBest = -2;
-            bestNextMove = "";
-
-            if(currBoard.checkWin() != -2) ongoing = false; //We sent winning move, so game is over
-            else currState = ReceiveMove; //If game is not over, goes to ReceiveMove state
-
-        break;
-
-        case ReceiveMove:
-
-            cin >> incomingMessage; // Accepts move from referee
-
-            /* FOR TESTING
-            int i = 1;
-            switch(i) {
-                case 1:
-                    incomingMessage = "a1";
-                    i++;
-                break;
-                case 2:
-                    incomingMessage = "b2";
-                    i++;
-                break;
-                case 3:
-                    incomingMessage = "c1";
-                    i++;
-                break;
-            }
-            */
-            
-            if (incomingMessage.find("END") != std::string::npos) ongoing = false; //If referee calls game over, game is over
-            else if (incomingMessage != "") {
-
-                currBoard = currBoard.makeMove(incomingMessage, false); // Applies move to the current board configuration
-
-                //cout << "Opponent Move: " << incomingMessage << endl; //FOR TESTING
+                currBoard = currBoard.makeMove(bestNextMove, true); // Updates the current board state to the move we are about to make
+                //cout << "Best Move: " << bestNextMove << endl; //FOR TESTING
                 //currBoard.printBoard(currBoard.config); //FOR TESTING
+                sendMove(bestNextMove);
 
-                incomingMessage = ""; // Resets incoming message to empty string
 
-                currState = TakeTurn; // Goes to TakeTurn state
-            }
+                //Resets the best values for next move
+                currBest = -2;
+                bestNextMove = "";
 
-        break;
+                if(currBoard.checkWin() != -2) ongoing = false; //We sent winning move, so game is over
+                else currState = ReceiveMove; //If game is not over, goes to ReceiveMove state
+
+            break;
+
+            case ReceiveMove:
+                cin >> incomingMessage; // Accepts move from referee
+
+                /* FOR TESTING
+                static int i = 1;
+                switch(i) {
+                    case 1:
+                        incomingMessage = "a1";
+                        i++;
+                    break;
+                    case 2:
+                        incomingMessage = "b2";
+                        i++;
+                    break;
+                    case 3:
+                        incomingMessage = "c1";
+                        i++;
+                    break;
+                }
+                */
+            
+                if (incomingMessage.find("END") != std::string::npos) ongoing = false; //If referee calls game over, game is over
+                else if (incomingMessage != "") {
+
+                    currBoard = currBoard.makeMove(incomingMessage, false); // Applies move to the current board configuration
+
+                    //cout << "Opponent Move: " << incomingMessage << endl; //FOR TESTING
+                    //currBoard.printBoard(currBoard.config); //FOR TESTING
+
+                    incomingMessage = ""; // Resets incoming message to empty string
+
+                    currState = TakeTurn; // Goes to TakeTurn state
+                }
+            break;
         }
     }
 }
