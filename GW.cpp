@@ -282,6 +282,8 @@ int main() {
     Board currBoard = Board();   // On first pass makes blank board config
     vector<Board> nextMoves;
 
+    int Ood[3][3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
+
     static int alpha = -9999;
     static int beta = 9999;
 
