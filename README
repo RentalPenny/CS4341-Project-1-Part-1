@@ -1,0 +1,21 @@
+Tic-Tac-Toe Playing AI for CS4341 Project 1 Part 1 - "GW"
+Created by Michael Conroy
+__________________________________________________________________________________________________________________
+Running Instructions:
+1. First, compile the program file GW.cpp using the command "g++ GW.cpp -o GW"
+2. Next run the referee program (https://github.com/jake-molnia/CS4341-referee) with the GW AI by running the command "cs4341-referee tictactoe -p "./GW" --visual"
+- Alternate game configurations can be setup using the different commands detailed in the ref's README
+__________________________________________________________________________________________________________________
+Utility Function:
+The function in GW.cpp that functions as the utility function of the minimax algorithm is checkWin(). This function looks at the calling board and returns 1 if it is in a configuration in which GW wins, -1 if the opponent wins, 0 if it is a draw, and -2 if the board is not terminal.
+In addition to the utility function, to break ties between utility values, the minimax function keeps track of how many winning configurations are down the branches from that board (every win adds 1 to the value, losses subtract 1). When two boards have the same utility value and the program needs to break a tie as to which it will send up the tree, it chooses the one with the most wins in its branches when looking for the max, and least number of wins for min.
+__________________________________________________________________________________________________________________
+Testing:
+Much of the testing was done using the debugger and series of print statements. For example, I would typically artificially send moves to the program, then have statements that print the state of the board each time it searches in the minimax algorithm. In order to give it moves, I would comment out the lines that recieve messages from the referee and add statements that set the incomingMessage value to a set string. (e.g. In the Start phase of the game replacing "cin << incomingMessage" with "incomingMessage = 'blue'", or setting up an iterating switch statement that sends the program a different move from the opponent)
+This allowed me to track the state of the game's tree as the program progressed through the tree. In doing this, I was able to detect nearly all bugs in the program. The various print statements remain in GW.cpp, commented and marked as test statements.
+Intermitently when testing and debugging seemed to produce fruitful results, I connected to the referee to test, and if the results were not what I hoped for I would recreate the game as described above and use the debugger to step through each step of the game to see where it went wrong.
+Additionally I tested GW against itself in the referee, ensuring that the program could operate from both sides of the game.
+__________________________________________________________________________________________________________________
+Strengths and Weaknesses;
+I believe a strength of the GW program is that its base state machine ensures that the program does not waste any efficiency with performing its tasks then waiting for input. Additionally, it does well at determining the best moves to take.
+The biggest weakness of the program is that it could be majorly improved in efficiency. The structure of functions and storing the entire tree comprehensively every time it looks for a new move slows down the program. It is made up for through alpha beta pruning, though if there were not the time constraint of the assignment it could be fine tuned to be made more efficient.
