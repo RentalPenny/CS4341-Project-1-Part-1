@@ -134,7 +134,7 @@ public:
                             currMinNumWins = nextBoard.numWinsFromKids; //Stores the number of wins from the kids of the current board
                         }
                     }
-                    
+
                     if(currMin < beta) beta = currMin; //If the current min is less than beta, sets beta to the current min
                     if(beta < alpha) break; //If beta is less than alpha, doesnt need to check the rest of this branch
                 }
@@ -324,6 +324,7 @@ int main() {
     int beta = 9999;
 
     bool ongoing = true; // Boolean to keep track of if the game is still ongoing
+    bool win;
 
     while (ongoing) {
 
@@ -348,6 +349,8 @@ int main() {
 
             case TakeTurn:
 
+                //time_t start = time(0); //Starts the timer
+
                 nextMoves = currBoard.nextMoves(true); // Populates the child nodes of current Board and saves them to array of Boards
                 for (Board nextBoard : nextMoves) {// Looks at each child node
                     string nextMove = nextBoard.move;    // Retrieves the move to get to the current child
@@ -365,12 +368,18 @@ int main() {
                 //currBoard.printBoard(currBoard.config); //FOR TESTING
                 sendMove(bestNextMove);
 
+                //double timeSinceStart = difftime(time(0), start); //Calculates the time taken to make the move
+                //cout << "Time taken: " << timeSinceStart << " seconds" << endl; //Prints the time taken
+
 
                 //Resets the best values for next move
                 currBest = -2;
                 bestNextMove = "";
 
-                if(currBoard.checkWin() != -2) ongoing = false; //We sent winning move, so game is over
+                if(currBoard.checkWin() != -2) {
+                    ongoing = false; //We sent winning move, so game is over
+                    win = true; //Move GW made won, GW wins
+                }
                 else currState = ReceiveMove; //If game is not over, goes to ReceiveMove state
 
             break;
@@ -396,7 +405,10 @@ int main() {
                 }
                 */
             
-                if (incomingMessage.find("END") != std::string::npos) ongoing = false; //If referee calls game over, game is over
+                if (incomingMessage.find("END") != std::string::npos) {
+                    ongoing = false; //If referee calls game over, game is over
+                    win = false; //If recieve this message first, because opponent won, GW loses
+                }
                 else if (incomingMessage != "") {
 
                     currBoard = currBoard.makeMove(incomingMessage, false); // Applies move to the current board configuration
@@ -411,4 +423,9 @@ int main() {
             break;
         }
     }
+
+    string winner;
+    if(win) winner = "GW";
+    else winner = "Opponent";
+    cout << "Game Over, " << winner << " has won!" << endl; // Prints game over message
 }
