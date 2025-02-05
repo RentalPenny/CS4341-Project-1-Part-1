@@ -295,11 +295,11 @@ int main() {
         switch (currState) {
         case Start:
 
-            //cin >> incomingMessage;
-            incomingMessage = "X"; // For testing purposes, will be replaced with cin >> incomingMessage;
+            cin >> incomingMessage;
+            //incomingMessage = "X"; // For testing purposes, will be replaced with cin >> incomingMessage;
 
             if (incomingMessage != "") {
-                if (incomingMessage == "X") {
+                if (incomingMessage == "blue") {
                     myToken = X;
                     currState = TakeTurn;
                 }
@@ -324,22 +324,21 @@ int main() {
                 }
             }
 
-            //currBoard.printBoard(currBoard.config);
             currBoard = currBoard.makeMove(bestNextMove, true); // Updates the current board state to the move we are about to make
+            //currBoard.printBoard(currBoard.config);
             sendMove(bestNextMove);
 
             currBest = -2;
             bestNextMove = "";
 
-            currState = ReceiveMove;
+            if(currBoard.checkWin() != -2) currState = Endgame;
+            else currState = ReceiveMove;
 
         break;
 
         case ReceiveMove:
 
-            //cin >> incomingMessage; // Accepts move from referee
-            
-            //incomingMessage = "a2"; // For testing purposes, will be replaced with cin >> incomingMessage;
+            cin >> incomingMessage; // Accepts move from referee
             //cout << "Received Move: " << incomingMessage << endl;
             
             if (incomingMessage.find("END") != std::string::npos) ongoing = false;
